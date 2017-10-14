@@ -46,17 +46,37 @@ void Stacking::runInitialAnimation()
     
     auto easeRight = EaseSineInOut::create(moveRight);
     auto easeLeft = EaseSineInOut::create(moveLeft);
+
+	auto changeColor0 = TintTo::create(1, Color3B::BLUE);
+	auto changeColor1 = TintTo::create(1, Color3B::MAGENTA);
+	auto changeColor2 = TintTo::create(1, Color3B::RED);
+	auto changeColor3 = TintTo::create(1, Color3B::ORANGE);
+	auto changeColor4 = TintTo::create(1, Color3B::YELLOW);
+	auto changeColor5 = TintTo::create(1, Color3B::GREEN);
     
-    auto sequence = Sequence::create(easeRight, easeLeft, NULL);
+    auto sequence = Sequence::create(easeRight, easeLeft, nullptr);
+
+	auto sequenceColor = Sequence::create(changeColor0, changeColor1, changeColor2, changeColor3, changeColor4, changeColor5, nullptr);
     
     layer->runAction(RepeatForever::create(sequence));
+	layer->runAction(RepeatForever::create(sequenceColor));
     
     
 }
 
 void Stacking::initClickListener()
 {
+	auto keyListener = EventListenerKeyboard::create();
     auto mouseListener = EventListenerTouchOneByOne::create();
+
+	//Keyboard down
+	keyListener->onKeyPressed = [=](EventKeyboard::KeyCode keyCode, Event* event) {
+		switch (keyCode) {
+			case EventKeyboard::KeyCode::KEY_DOWN_ARROW:
+				context->stopAndFall();
+				break;
+		}
+	};
     
     mouseListener->onTouchBegan = [=](Touch* touch, Event* event){
         context->stopAndFall();
@@ -79,7 +99,7 @@ void Stacking::stopAndFall()
         auto funcInitElement = CallFunc::create(CC_CALLBACK_0(Stacking::initElement, this));
         auto fallAnimation = MoveTo::create(0.3f, Vec2(layer->getPosition().x, layer->getBoundingBox().size.height/2));
         
-        layer->runAction(Sequence::create(fallAnimation, funcInitElement, NULL));
+        layer->runAction(Sequence::create(fallAnimation, funcInitElement, nullptr));
     }
     else
     {
@@ -87,6 +107,8 @@ void Stacking::stopAndFall()
         auto fallAnimation = MoveTo::create(0.2f, Vec2(layer->getPosition().x,
                                                        layers.at(layers.size()-2)->getPosition().y + layer->getBoundingBox().size.height));
         
-        layer->runAction(Sequence::create(fallAnimation, funcInitElement, NULL));
+        layer->runAction(Sequence::create(fallAnimation, funcInitElement, nullptr));
     }
+
+
 }

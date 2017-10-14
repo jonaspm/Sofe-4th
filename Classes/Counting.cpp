@@ -52,6 +52,8 @@ void Counting::initVariables()
 
 void Counting::initListeners()
 {
+	auto sae = CocosDenshion::SimpleAudioEngine::getInstance();
+	sae->preloadBackgroundMusic("song.mp3");
     auto despawnListener = EventListenerCustom::create("custom_event_sprite_disappear", [=](EventCustom* event)
     {
         spawned++;
@@ -63,8 +65,9 @@ void Counting::initListeners()
     _eventDispatcher->addEventListenerWithFixedPriority(despawnListener, 1);
     
     auto tapListener = EventListenerTouchOneByOne::create();
-    tapListener->onTouchBegan = [ this ](Touch* touch, Event* event)
+    tapListener->onTouchBegan = [ this, sae ](Touch* touch, Event* event)
     {
+		sae->playBackgroundMusic("sound/point.wav");
         if (plus->getBoundingBox().containsPoint(touch->getLocation())) { displayUp(); }
         if (minus->getBoundingBox().containsPoint(touch->getLocation())){ displayDown(); }
         return true;
@@ -73,6 +76,7 @@ void Counting::initListeners()
     
     auto endListener = EventListenerCustom::create("custom_event_end", [=](EventCustom* event)
     {
+		sae->end();
        endGame();
     });
     _eventDispatcher->addEventListenerWithSceneGraphPriority(endListener, this);
@@ -91,7 +95,7 @@ void Counting::display()
              
              aux->setPosition(Vec2(Director::getInstance()->getVisibleSize().width, Director::getInstance()->getVisibleSize().height/2));
              
-             auto moveToLeft = MoveTo::create(1.5f, Vec2(0, Director::getInstance()->getVisibleSize().height/2));
+             auto moveToLeft = MoveTo::create(1.5f, Vec2(Director::getInstance()->getVisibleSize().height / 2 - spawned / 10, 0));
              auto removeSprite = RemoveSelf::create();
              auto callListener = CallFunc::create([this]()
               {
@@ -99,13 +103,13 @@ void Counting::display()
                   _eventDispatcher->dispatchEvent(&event);
               });
              
-             auto sequence = Sequence::create(moveToLeft, removeSprite, callListener, NULL);
+             auto sequence = Sequence::create(moveToLeft, removeSprite, callListener, nullptr);
              aux->runAction(sequence);
              
              addChild(aux);
          });
         
-        auto seq = Sequence::create(delayT, spriteSpawn, NULL);
+        auto seq = Sequence::create(delayT, spriteSpawn, nullptr);
         this->runAction(seq);
     }
 }
@@ -167,7 +171,7 @@ void Counting::displayCounter()
         _eventDispatcher->dispatchEvent(&event);
     });
     
-    auto sequence = Sequence::create(delay, end, NULL);
+    auto sequence = Sequence::create(delay, end, nullptr);
     this->runAction(sequence);
 }
 

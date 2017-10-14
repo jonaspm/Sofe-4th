@@ -1,5 +1,7 @@
 #include "Board.h"
 #include "SimpleAudioEngine.h"
+#include <fstream>
+#include <iostream>
 
 USING_NS_CC;
 
@@ -40,6 +42,20 @@ void Board::initTiles()
     
     firstTileSize = stoneTile->getContentSize();
     firstTilePosition = stoneTile->getPosition();
+
+	ifstream scoresFile ("scores.txt");
+	string scores[6];
+	string line;
+	if (scoresFile.is_open())
+	{
+		int count = 0;
+		while (getline(scoresFile, line))
+		{
+			scores[count] = line != ""? line : "0";
+			count++;
+		}
+	}
+
     
     //6 tiles
     for(int i = 1; i < 7; i++)
@@ -52,15 +68,24 @@ void Board::initTiles()
         
         tile->setPosition(Vec2(xPosition, yPosition));
         
-        addChild(tile);
-        
+		addChild(tile);
+
         //SceneLabel
         auto label = Label::create();
         label->setScale(1.f/0.85, 2.f);
         label->setPosition(Vec2(tile->getContentSize().width/2, 0));
         
+		// Scene score label
+		auto scoreLabel = Label::create();
+		scoreLabel->setScale(1.f / 0.85, 2.f);
+		scoreLabel->setPosition(Vec2(tile->getContentSize().width / 2, 0 - label->getContentSize().height));
+
         tile->addChild(label);
         label->setString(sceneNames[i-1]);
+
+		// Final setup of score label
+		tile->addChild(scoreLabel);
+		scoreLabel->setString("Score: " + scores[i]);
     }
 }
 
@@ -112,21 +137,29 @@ void Board::stopDiceAndMove()
 void Board::startDice()
 {
     Size screenSize = Director::getInstance()->getVisibleSize();
-    auto diceLabel = Label::create();
-    
-    diceLabel->setPosition(Vec2(screenSize/3.f * 2.f));
-    diceLabel->setSystemFontSize(40);
-    
-    addChild(diceLabel);
+//    auto diceLabel = Label::create();
+	Sprite* diceArray[6];
+
+	for(int i = 0; i < 6; i++) {
+		string diceName = "dice" + std::to_string(i+1) + ".png";
+		diceArray[i] = Sprite::create(diceName);
+		diceArray[i]->setPosition(Vec2(screenSize / 3.f * 2.f));
+	}
+	
+//    diceLabel->setPosition(Vec2(screenSize/3.f * 2.f));
+//    diceLabel->setSystemFontSize(40);
+
+//    addChild(diceLabel);
     
     schedule([=](float dt){
-
+		removeChild(diceArray[actualNumber]);
         actualNumber %= sceneConstructors.size();
         actualNumber++;
         
-        string text = "";
-        text.push_back(actualNumber+'0');
-        diceLabel->setString(text);
+//        string text = "";
+		addChild(diceArray[actualNumber]);
+//        text.push_back(actualNumber+'0');
+//        diceLabel->setString(text);
         
     }, 0.1f, -1, 0, "changeDiceNumber");
     
